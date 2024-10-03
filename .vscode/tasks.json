@@ -1,0 +1,41 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "mkdir",
+            "type": "shell",
+            "command": "mkdir -p build",
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "dependsOn": "mkdir",
+            "command": "odin run . -out:build/${workspaceFolderBasename}",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Compile and Run"
+        },
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "odin build . -o:aggressive -out:build/${workspaceFolderBasename}",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Build with aggressive optimizations"
+        },
+        {
+            "label": "debug",
+            "type": "shell",
+            "command": "odin build . -debug -out:build/${workspaceFolderBasename}",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Compile with debug flags"
+        }
+    ]
+}
