@@ -37,37 +37,34 @@ SnakeCell :: struct {
 }
 
 drawSnake :: proc(cell: ^SnakeCell) {
-	sc:=cell^;
-
 	rl.DrawCircle(
-		(sc.x + 1) * CELL_SIZE, 
-		(sc.y + 1 )* CELL_SIZE,
-		CELL_SIZE-5,
+		(cell.x + 1) * CELL_SIZE, 
+		(cell.y + 1 )* CELL_SIZE,
+		CELL_SIZE/2-2,
 		rl.GREEN 
 	);
 	
-	if sc.next != {} {
-		drawSnake(sc.next)
+	if cell.next != {} {
+		drawSnake(cell.next)
 	}
 }
 
 moveSnake :: proc(cell: ^SnakeCell, dir:Direction) {
-	sc:=cell^;
-	
-	 switch dir{
+	 switch cell.dir{
 		case .LEFT:
-			cell^.x -= 1
+			cell.x -= 1
 		case .RIGHT:
-			cell^.x += 1
+			cell.x += 1
 		case .UP:
-			cell^.y -= 1
+			cell.y -= 1
 		case .DOWN:
-			cell^.y +=1
+			cell.y +=1
 	}
-	
-	if sc.next != {} {
-		moveSnake(sc.next, sc.dir)
+
+	if cell.next != {} {
+		moveSnake(cell.next, cell.dir)
 	}
+	cell.dir=dir
 }
 
 processUserInput :: proc(input: ^Input){
@@ -102,6 +99,10 @@ main :: proc() {
 	}
 
 	snakeHead := SnakeCell{0,0,.RIGHT,{}}
+	snakeHead.next = &SnakeCell{0,1,.UP,{}}
+	snakeHead.next.next = &SnakeCell{0,2,.UP,{}}
+	snakeHead.next.next.next = &SnakeCell{0,3,.UP,{}}
+	snakeHead.next.next.next.next = &SnakeCell{0,4,.UP,{}}
 	input := Input{.RIGHT}
 
 	//game loop
