@@ -5,6 +5,7 @@ import time "core:time"
 import rl "vendor:raylib"
 
 CELL_SIZE :: 20
+INITIAL_SNAKE_SIZE :: 4
 
 Direction:: enum {
 	UP,
@@ -34,6 +35,21 @@ SnakeCell :: struct {
 	x,y: i32,
 	dir: Direction,
 	next: ^SnakeCell,
+}
+
+createSnake :: proc(size: i32) -> ^SnakeCell {
+	cell := new(SnakeCell)
+	cell.x = 0 + size;
+	cell.dir = .RIGHT
+	cell.next = createSnake(size-1)
+	return cell
+}
+
+freeSnake :: proc (cell:^SnakeCell) {
+	if(cell.next != {}){
+		freeSnake(cell.next)
+	}
+	free(cell);
 }
 
 drawSnake :: proc(cell: ^SnakeCell) {
@@ -98,11 +114,9 @@ main :: proc() {
 		height = 64,
 	}
 
-	snakeHead := SnakeCell{0,0,.RIGHT,{}}
-	snakeHead.next = &SnakeCell{0,1,.UP,{}}
-	snakeHead.next.next = &SnakeCell{0,2,.UP,{}}
-	snakeHead.next.next.next = &SnakeCell{0,3,.UP,{}}
-	snakeHead.next.next.next.next = &SnakeCell{0,4,.UP,{}}
+	snakeHead := createSnake(INITIAL_SNAKE_SIZE)
+	defer freeSnake(snakeHead);
+
 	input := Input{.RIGHT}
 
 	//game loop
@@ -112,12 +126,12 @@ main :: proc() {
 
 		rl.ClearBackground(rl.BLACK)
 
-		drawSnake(&snakeHead)
+		drawSnake(snakeHead)
 		processUserInput(&input)
 
 		if time.since(game.last_tick) > game.tick_rate {
 			game.last_tick = time.now()
-			moveSnake(&snakeHead, input.dir)
+			moveSnake(snakeHead, input.dir)
 		}
 	}
 
