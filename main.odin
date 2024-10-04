@@ -57,16 +57,31 @@ freeSnake :: proc (cell:^SnakeCell) {
 	free(cell);
 }
 
-drawSnake :: proc(cell: ^SnakeCell) {
+drawSnake :: proc(cell: ^SnakeCell, game: Game) {
+	tickPercentage : f64 = f64(time.duration_nanoseconds(time.since(game.last_tick))) / f64(time.duration_nanoseconds(game.tick_rate))
+	x:=(cell.x + 1) * CELL_SIZE
+	y:=(cell.y + 1 )* CELL_SIZE
+
+	switch cell.dir{
+		case .LEFT:
+			x -= i32(tickPercentage*CELL_SIZE)
+		case .RIGHT:
+			x += i32(tickPercentage*CELL_SIZE)
+		case .UP:
+			y -= i32(tickPercentage*CELL_SIZE)
+		case .DOWN:
+			y += i32(tickPercentage*CELL_SIZE)
+	}
+
 	rl.DrawCircle(
-		(cell.x + 1) * CELL_SIZE, 
-		(cell.y + 1 )* CELL_SIZE,
+		x, 
+		y,
 		CELL_SIZE/2-2,
 		rl.GREEN 
 	);
 	
 	if cell.next != {} {
-		drawSnake(cell.next)
+		drawSnake(cell.next, game)
 	}
 }
 
@@ -149,7 +164,7 @@ main :: proc() {
 
 		rl.ClearBackground(rl.BLACK)
 
-		drawSnake(snakeHead)
+		drawSnake(snakeHead, game)
 		processUserInput(&input)
 		//todo: input buffer
 		//todo: annimate between spaces
