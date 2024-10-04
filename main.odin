@@ -167,7 +167,6 @@ main :: proc() {
 		drawSnake(snakeHead, game)
 		processUserInput(&input)
 		//todo: input buffer
-		//todo: annimate between spaces
 
 		if time.since(game.last_tick) > game.tick_rate {
 			game.last_tick = time.now()
