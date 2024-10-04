@@ -4,7 +4,9 @@ import "core:fmt"
 import time "core:time"
 import rl "vendor:raylib"
 
-CELL_SIZE :: 20
+CELL_SIZE :: 25
+GAME_WIDTH :: 30
+GAME_HEIGHT :: 30
 INITIAL_SNAKE_SIZE :: 4
 
 Direction:: enum {
@@ -38,6 +40,9 @@ SnakeCell :: struct {
 }
 
 createSnake :: proc(size: i32) -> ^SnakeCell {
+	if(size <=0 ){
+		return {}
+	}
 	cell := new(SnakeCell)
 	cell.x = 0 + size;
 	cell.dir = .RIGHT
@@ -69,12 +74,24 @@ moveSnake :: proc(cell: ^SnakeCell, dir:Direction) {
 	 switch cell.dir{
 		case .LEFT:
 			cell.x -= 1
+			if(cell.x < 0){
+				cell.x = GAME_WIDTH
+			}
 		case .RIGHT:
 			cell.x += 1
+			if(cell.x >= GAME_WIDTH){
+				cell.x = 0
+			}
 		case .UP:
 			cell.y -= 1
+			if(cell.y < 0){
+				cell.y = GAME_HEIGHT
+			}
 		case .DOWN:
 			cell.y +=1
+			if(cell.y >= GAME_HEIGHT){
+				cell.y = 0
+			}
 	}
 
 	if cell.next != {} {
@@ -100,7 +117,13 @@ main :: proc() {
 	
 	//initialize window
 	{
-		window := Window{"Snake",1000,900,60,rl.ConfigFlags{}}
+		window := Window{
+			"Snake",
+			GAME_WIDTH * CELL_SIZE,
+			GAME_HEIGHT * CELL_SIZE,
+			60,
+			rl.ConfigFlags{}
+		}
 		rl.InitWindow(window.width, window.height, window.name)
 		rl.SetWindowState(window.controlFlags)
 		rl.SetTargetFPS(window.fps)
@@ -110,8 +133,8 @@ main :: proc() {
 	game := Game{
 		tick_rate = 300 * time.Millisecond,
 		last_tick = time.now(),
-		width = 64, 
-		height = 64,
+		width = GAME_WIDTH, 
+		height = GAME_HEIGHT,
 	}
 
 	snakeHead := createSnake(INITIAL_SNAKE_SIZE)
@@ -128,10 +151,13 @@ main :: proc() {
 
 		drawSnake(snakeHead)
 		processUserInput(&input)
+		//todo: input buffer
+		//todo: annimate between spaces
 
 		if time.since(game.last_tick) > game.tick_rate {
 			game.last_tick = time.now()
 			moveSnake(snakeHead, input.dir)
+			//todo: spawn apples
 		}
 	}
 
