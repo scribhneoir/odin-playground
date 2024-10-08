@@ -86,7 +86,7 @@ drawSnake :: proc(cell: ^SnakeCell, game: Game) {
 }
 
 moveSnake :: proc(cell: ^SnakeCell, dir:Direction) {
-	 switch cell.dir{
+	 #partial switch cell.dir{
 		case .LEFT:
 			cell.x -= 1
 			if(cell.x < 0){
@@ -115,16 +115,28 @@ moveSnake :: proc(cell: ^SnakeCell, dir:Direction) {
 	cell.dir=dir
 }
 
-processUserInput :: proc(input: ^Input){
+processUserInput :: proc(input:Input, inputBuf: ^[dynamic]Input){
+	size := len(inputBuf);
 	#partial switch rl.GetKeyPressed(){
 		case .LEFT, .A, .H :
-			input.dir = .LEFT
+			if (size <= 0 && input.dir != .LEFT && input.dir != .RIGHT)  || (size > 0 && inputBuf[0].dir != .LEFT && inputBuf[0].dir != .RIGHT)  {
+				inject_at(inputBuf,0, Input{.LEFT})
+			}
 		case .RIGHT, .D, .L :
-			input.dir = .RIGHT
+			if (size <= 0 && input.dir != .RIGHT && input.dir != .LEFT)  || (size > 0 && inputBuf[0].dir != .LEFT && inputBuf[0].dir != .RIGHT)  {
+				inject_at(inputBuf,0, Input{.RIGHT})
+			}
 		case .UP, .W, .K :
-			input.dir = .UP
+			if (size <= 0 && input.dir != .UP && input.dir != .DOWN)  || (size > 0 && inputBuf[0].dir != .UP && inputBuf[0].dir != .DOWN)  {
+				inject_at(inputBuf,0, Input{.UP})
+			}
 		case .DOWN, .S, .J :
-			input.dir = .DOWN
+			if (size <= 0 && input.dir != .DOWN && input.dir != .UP)  || (size > 0 && inputBuf[0].dir != .UP && inputBuf[0].dir != .DOWN)  {
+				inject_at(inputBuf,0, Input{.DOWN})
+			}
+	}
+	for len(inputBuf) > 2 {
+		pop(inputBuf);
 	}
 }
 
@@ -156,6 +168,7 @@ main :: proc() {
 	defer freeSnake(snakeHead);
 
 	input := Input{.RIGHT}
+	inputBuf : [dynamic]Input;
 
 	//game loop
 	for !rl.WindowShouldClose(){
@@ -165,11 +178,13 @@ main :: proc() {
 		rl.ClearBackground(rl.BLACK)
 
 		drawSnake(snakeHead, game)
-		processUserInput(&input)
-		//todo: input buffer
+		processUserInput(input, &inputBuf)
 
 		if time.since(game.last_tick) > game.tick_rate {
 			game.last_tick = time.now()
+			if(len(inputBuf) != 0){
+				input = pop(&inputBuf)
+			}
 			moveSnake(snakeHead, input.dir)
 			//todo: spawn apples
 		}
