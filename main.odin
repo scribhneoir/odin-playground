@@ -2,6 +2,7 @@ package snake
 
 import "core:fmt"
 import time "core:time"
+import "core:math/rand"
 import rl "vendor:raylib"
 
 CELL_SIZE :: 25
@@ -26,6 +27,7 @@ Window :: struct {
 Game :: struct {
 	tick_rate: time.Duration,
 	last_tick: time.Time,
+	tick_count: i32,
 	width, height: i32,
 }
 
@@ -37,6 +39,10 @@ SnakeCell :: struct {
 	x,y: i32,
 	dir: Direction,
 	next: ^SnakeCell,
+}
+
+Apple :: struct {
+	x,y: i32,
 }
 
 createSnake :: proc(size: i32) -> ^SnakeCell {
@@ -82,6 +88,19 @@ drawSnake :: proc(cell: ^SnakeCell, game: Game) {
 	
 	if cell.next != {} {
 		drawSnake(cell.next, game)
+	}
+}
+
+drawApples :: proc(apples: ^[dynamic]Apple) {
+	for apple in apples{
+		x:=(apple.x + 1) * CELL_SIZE
+		y:=(apple.y + 1 )* CELL_SIZE
+		rl.DrawCircle(
+			x, 
+			y,
+			CELL_SIZE/3-2,
+			rl.RED 
+		);
 	}
 }
 
@@ -170,6 +189,8 @@ main :: proc() {
 	input := Input{.RIGHT}
 	inputBuf : [dynamic]Input;
 
+	apples : [dynamic]Apple;
+
 	//game loop
 	for !rl.WindowShouldClose(){
 		rl.BeginDrawing()
@@ -178,15 +199,26 @@ main :: proc() {
 		rl.ClearBackground(rl.BLACK)
 
 		drawSnake(snakeHead, game)
+		drawApples(&apples)
 		processUserInput(input, &inputBuf)
 
 		if time.since(game.last_tick) > game.tick_rate {
 			game.last_tick = time.now()
+			game.tick_count += 1;
 			if(len(inputBuf) != 0){
 				input = pop(&inputBuf)
 			}
 			moveSnake(snakeHead, input.dir)
-			//todo: spawn apples
+
+			if(game.tick_count % 5 == 0 && len(apples)<5){
+				append(
+					&apples,
+					Apple{
+						i32(rand.float32() * GAME_WIDTH + 1),
+						i32(rand.float32() * GAME_HEIGHT + 1)
+					}
+				)
+			}
 		}
 	}
 
