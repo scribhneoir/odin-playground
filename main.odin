@@ -1,7 +1,7 @@
 package snake
 
 import "core:fmt"
-import time "core:time"
+import "core:time"
 import "core:math/rand"
 import rl "vendor:raylib"
 
@@ -39,6 +39,7 @@ SnakeCell :: struct {
 	x,y: i32,
 	dir: Direction,
 	next: ^SnakeCell,
+	eating: bool
 }
 
 Apple :: struct {
@@ -82,7 +83,7 @@ drawSnake :: proc(cell: ^SnakeCell, game: Game) {
 	rl.DrawCircle(
 		x, 
 		y,
-		CELL_SIZE/2-2,
+		cell.eating ? CELL_SIZE/2 : CELL_SIZE/2-2,
 		rl.GREEN 
 	);
 	
@@ -104,7 +105,23 @@ drawApples :: proc(apples: ^[dynamic]Apple) {
 	}
 }
 
-moveSnake :: proc(cell: ^SnakeCell, dir:Direction) {
+moveSnake :: proc(cell: ^SnakeCell, dir:Direction, moveEating := true) {
+	moveEat := true;
+	newCell := false;
+	if cell.eating && moveEating {
+		moveEat = false
+		cell.eating = false
+		if cell.next != {} {
+			cell.next.eating = true
+		} else {
+			newCell = true
+			cell.next = new(SnakeCell)
+			cell.next.x = cell.x
+			cell.next.y = cell.y
+			cell.next.dir=dir
+		}
+	}
+
 	 #partial switch cell.dir{
 		case .LEFT:
 			cell.x -= 1
@@ -128,8 +145,8 @@ moveSnake :: proc(cell: ^SnakeCell, dir:Direction) {
 			}
 	}
 
-	if cell.next != {} {
-		moveSnake(cell.next, cell.dir)
+	if cell.next != {} && !newCell {
+		moveSnake(cell.next, cell.dir, moveEat)
 	}
 	cell.dir=dir
 }
@@ -156,6 +173,15 @@ processUserInput :: proc(input:Input, inputBuf: ^[dynamic]Input){
 	}
 	for len(inputBuf) > 2 {
 		pop(inputBuf);
+	}
+}
+
+checkCollisions :: proc(cell: ^SnakeCell, apples: ^[dynamic]Apple){
+	for apple, i in apples {
+		if apple.x == cell.x && apple.y == cell.y {
+			cell.eating = true;
+			unordered_remove(apples, i);
+		}
 	}
 }
 
@@ -198,8 +224,8 @@ main :: proc() {
 
 		rl.ClearBackground(rl.BLACK)
 
-		drawSnake(snakeHead, game)
 		drawApples(&apples)
+		drawSnake(snakeHead, game)
 		processUserInput(input, &inputBuf)
 
 		if time.since(game.last_tick) > game.tick_rate {
@@ -209,6 +235,7 @@ main :: proc() {
 				input = pop(&inputBuf)
 			}
 			moveSnake(snakeHead, input.dir)
+			checkCollisions(snakeHead, &apples)
 
 			if(game.tick_count % 5 == 0 && len(apples)<5){
 				append(
