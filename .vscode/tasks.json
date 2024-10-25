@@ -33,7 +33,7 @@
             "command": "odin build . -debug -out:build/${workspaceFolderBasename}",
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
             "detail": "Compile with debug flags"
         }
