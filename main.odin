@@ -118,7 +118,7 @@ moveSnake :: proc(cell: ^SnakeCell, dir:Direction, moveEating := true) {
 			cell.next = new(SnakeCell)
 			cell.next.x = cell.x
 			cell.next.y = cell.y
-			cell.next.dir=dir
+			cell.next.dir=cell.dir
 		}
 	}
 
