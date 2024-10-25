@@ -3,6 +3,7 @@ package snake
 import "core:fmt"
 import "core:time"
 import "core:math/rand"
+import "core:math/ease"
 import rl "vendor:raylib"
 
 CELL_SIZE :: 25
@@ -65,7 +66,7 @@ freeSnake :: proc (cell:^SnakeCell) {
 }
 
 drawSnake :: proc(cell: ^SnakeCell, game: Game) {
-	tickPercentage : f64 = f64(time.duration_nanoseconds(time.since(game.last_tick))) / f64(time.duration_nanoseconds(game.tick_rate))
+	tickPercentage : f32 = f32(time.duration_nanoseconds(time.since(game.last_tick))) / f32(time.duration_nanoseconds(game.tick_rate))
 	x:=(cell.x + 1) * CELL_SIZE
 	y:=(cell.y + 1 )* CELL_SIZE
 
@@ -83,7 +84,7 @@ drawSnake :: proc(cell: ^SnakeCell, game: Game) {
 	rl.DrawCircle(
 		x, 
 		y,
-		cell.eating ? CELL_SIZE/2 : CELL_SIZE/2-2,
+		cell.eating ? CELL_SIZE/2-2 +4* ease.quadratic_in_out(tickPercentage) : CELL_SIZE/2-2,
 		rl.GREEN 
 	);
 	
