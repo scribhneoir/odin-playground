@@ -40,7 +40,8 @@ SnakeCell :: struct {
 	x,y: i32,
 	dir: Direction,
 	next: ^SnakeCell,
-	eating: bool
+	eating: bool,
+	new: bool
 }
 
 Apple :: struct {
@@ -84,7 +85,7 @@ drawSnake :: proc(cell: ^SnakeCell, game: Game) {
 	rl.DrawCircle(
 		x, 
 		y,
-		cell.eating ? CELL_SIZE/2-2 +4* ease.quadratic_in_out(tickPercentage) : CELL_SIZE/2-2,
+		cell.eating ? CELL_SIZE/2-2 +4* ease.quadratic_in_out(tickPercentage) : cell.new ? CELL_SIZE/2 * ease.quadratic_in(tickPercentage) : CELL_SIZE/2-2,
 		rl.GREEN 
 	);
 	
@@ -120,6 +121,7 @@ moveSnake :: proc(cell: ^SnakeCell, dir:Direction, moveEating := true) {
 			cell.next.x = cell.x
 			cell.next.y = cell.y
 			cell.next.dir=cell.dir
+			cell.next.new = true
 		}
 	}
 
@@ -150,6 +152,9 @@ moveSnake :: proc(cell: ^SnakeCell, dir:Direction, moveEating := true) {
 		moveSnake(cell.next, cell.dir, moveEat)
 	}
 	cell.dir=dir
+	if(cell.new){
+		cell.new = false
+	}
 }
 
 processUserInput :: proc(input:Input, inputBuf: ^[dynamic]Input){
