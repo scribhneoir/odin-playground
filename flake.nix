@@ -22,6 +22,7 @@
           packages = with pkgs; [
             odin
             ols
+            raylib
           ];
         };
       }
